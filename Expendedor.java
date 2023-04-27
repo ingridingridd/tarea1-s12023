@@ -9,13 +9,14 @@ class Expendedor{
     public static final int  SPRITE=2;
     
     public Expendedor(int numBebidas, int precioBebidas){
-        precio=precioBebidas;
+        this.precio=precioBebidas;
         coca= new Deposito();
         sprite= new Deposito();
         dv= new DepositoVuelto();
         this.precio=precio;
               
-        for (int i = 0; i < numBebidas; i++) {
+        //Rellenar máquina con bebidas
+        for (int i = 0; i < numBebidas; i++) { 
             CocaCola a= new CocaCola(100+i);
             coca.addBebida(a);
             Sprite b = new Sprite(200+i);
@@ -23,39 +24,65 @@ class Expendedor{
         }
     }
     
-    public Bebida comprarBebida(Moneda m, int cual){
+    public Bebida comprarBebida(Moneda moneda, int cual) throws PagoIncorrectoException, NoHayProductoException, PagoInsuficienteException{
         /*Vuelto en multiplos de 100*/
-        Bebida beb = null;
-        if( m==null ){
-            return beb;
-         }
-        if((cual != COCA && cual != SPRITE) || m.getValor() < precio){
-            dv.addMoneda(m);
-            return null;
+        Bebida bebida = null;
+        
+        if(moneda == null){
+            throw new PagoIncorrectoException("Inserte dinero para comprar");
         }
-        if(cual==COCA){
-            beb= coca.getBebida();
-        }
-        if (cual==SPRITE){
-            beb=sprite.getBebida();
-        }
-        if(beb!=null){
-           int vuelto= m.getValor()- precio;
-                  
-            while(vuelto > 0){
-                dv.addMoneda(new Moneda100() );
-                vuelto = vuelto - 100;
-            }
-            return beb;
-        }
-              
         else{
-            dv.addMoneda(m);
-            return null;
-        }    
+            if(moneda.getValor() >= precio){
+            //if( moneda == null ){
+            //    return bebida;
+            //}
+                switch(cual){
+                    case 1 :
+                        bebida = coca.getBebida();
+                        if(bebida != null){
+                            //calcularVuelto
+                            int vuelto= moneda.getValor()- precio;
+                            while(vuelto > 0){
+                                dv.addMoneda(new Moneda100());
+                                vuelto = vuelto - 100;
+                            }
+                            return bebida;
+                        }
+                        else{
+                            throw new NoHayProductoException("Bebida no disponible");
+                        }
+                    case 2 :
+                        bebida = sprite.getBebida();
+                        if(bebida != null){
+                            //calcularVuelto
+                            int vuelto= moneda.getValor()- precio;
+                            while(vuelto > 0){
+                                dv.addMoneda(new Moneda100() );
+                                vuelto = vuelto - 100;
+                            }
+                            return bebida;
+                        }
+                        else{
+                            throw new NoHayProductoException("Bebida no disponible");
+                        }  
+                    //case 3 :
+                    //caso numero erroneo
+                    default:
+                        throw new NoHayProductoException("No hay bebida disponible");
+                } //switch
+            }
+            else{
+                throw new PagoIncorrectoException("Saldo insuficiente");
+            }
+
+        } //else
     }
-          
+    
     public Moneda getVuelto(){
         return dv.getMoneda();    
     }     
+    
+    public int getPrecioBebida(){
+        return this.precio;
+    }
 }
